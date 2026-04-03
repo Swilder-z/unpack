@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>任务详情 #{{ task.id }}</h2>
+<ul>
+    <li>样本: {{ task.sample.file_name }}</li>
+    <li>状态: {{ task.status }}</li>
+    <li>策略: {{ task.strategy }}</li>
+    <li>识壳类型: {{ task.shell_type }}</li>
+    <li>产物: {{ task.result_artifact }}</li>
+    <li>错误: {{ task.error_message }}</li>
+    <li>人工复核: {{ task.requires_manual_review }}</li>
+    <li>复核备注: {{ task.review_note }}</li>
+</ul>
+
+<h3>事件日志</h3>
+<ul>
+{% for evt in task.events.all %}
+    <li>[{{ evt.created_at }}] {{ evt.old_status }} -> {{ evt.new_status }} | {{ evt.message }}</li>
+{% empty %}
+    <li>暂无事件</li>
+{% endfor %}
+</ul>
+
+<form method="post" action="/analysis/tasks/{{ task.id }}/retry/">
+    {% csrf_token %}
+    <button type="submit">重试任务</button>
+</form>
+{% endblock %}

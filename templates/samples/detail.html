@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>样本详情 #{{ sample.id }}</h2>
+<ul>
+    <li>文件名: {{ sample.file_name }}</li>
+    <li>文件大小: {{ sample.file_size }}</li>
+    <li>SHA256: {{ sample.sha256 }}</li>
+    <li>包名: {{ sample.package_name|default:'-' }}</li>
+    <li>version_name: {{ sample.version_name|default:'-' }}</li>
+    <li>version_code: {{ sample.version_code|default:'-' }}</li>
+    <li>上传时间: {{ sample.uploaded_at }}</li>
+</ul>
+
+<h3>壳识别结果</h3>
+{% if detection %}
+<ul>
+    <li>shell_type: {{ detection.shell_type }}</li>
+    <li>confidence: {{ detection.confidence }}</li>
+    <li>evidence: {{ detection.evidence }}</li>
+    <li>strategy: {{ detection.strategy }}</li>
+    <li>command: {{ detection.command }}</li>
+    <li>exit_code: {{ detection.exit_code }}</li>
+    <li>error_message: {{ detection.error_message|default:'-' }}</li>
+</ul>
+<details>
+    <summary>raw_output</summary>
+    <pre>{{ detection.raw_output|safe }}</pre>
+</details>
+{% else %}
+<p>暂无识壳数据。</p>
+{% endif %}
+
+<p><a href="{% url 'samples:upload_apk' %}">继续上传</a></p>
+{% endblock %}

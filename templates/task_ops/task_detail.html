@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>任务详情 #{{ job.id }}</h2>
+
+<div style="display:flex; gap:20px; flex-wrap: wrap;">
+    <div>
+        <h4>基础信息</h4>
+        <ul>
+            <li>样本文件: {{ job.sample.file_name }}</li>
+            <li>状态: {{ job.status }}</li>
+            <li>策略: {{ job.strategy }}</li>
+            <li>壳类型: {{ job.shell_detection.shell_type|default:'-' }}</li>
+            <li>识别置信度: {{ job.shell_detection.confidence|default:'-' }}</li>
+            <li>重试次数: {{ job.retry_count }}/{{ job.max_retries }}</li>
+            <li>执行节点: {{ job.result_summary.execution_node|default:'default-node' }}</li>
+            <li>模拟器实例: {{ job.result_summary.emulator_instance|default:'-' }}</li>
+            <li>开始时间: {{ job.started_at|default:'-' }}</li>
+            <li>结束时间: {{ job.finished_at|default:'-' }}</li>
+            <li>总耗时: {{ total_duration }}</li>
+            <li>产物目录: {{ job.artifact_dir|default:'-' }}</li>
+            <li>错误信息: {{ job.error_message|default:'-' }}</li>
+            <li>人工复核: {{ job.requires_review }}</li>
+        </ul>
+    </div>
+
+    <div>
+        <h4>策略与识壳</h4>
+        {% if job.shell_detection %}
+            <p><strong>evidence:</strong> {{ job.shell_detection.evidence }}</p>
+            <details>
+                <summary>raw_output</summary>
+                <pre>{{ job.shell_detection.raw_output|safe }}</pre>
+            </details>
+        {% else %}
+            <p>暂无识壳信息。</p>
+        {% endif %}
+    </div>
+</div>
+
+<h3>状态时间线</h3>
+<table>
+    <thead>
+        <tr>
+            <th>时间</th>
+            <th>阶段</th>
+            <th>级别</th>
+            <th>消息</th>
+            <th>距上一阶段</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in timeline %}
+            <tr>
+                <td>{{ item.time }}</td>
+                <td>{{ item.stage }}</td>
+                <td>{{ item.level }}</td>
+                <td>{{ item.message }}</td>
+                <td>{{ item.elapsed_since_previous|default:'-' }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">暂无时间线数据</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 14px;">
+    <a href="{% url 'task_ops:task_logs' job.id %}">查看全部日志</a>
+</div>
+
+<div style="margin-top: 14px; display:flex; gap:10px;">
+    <button type="button" disabled>失败重试（预留）</button>
+    <button type="button" disabled>人工复核（预留）</button>
+</div>
+{% endblock %}

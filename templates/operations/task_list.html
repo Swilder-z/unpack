@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>任务运维视图</h2>
+<form method="get">
+    <label>状态过滤:</label>
+    <input type="text" name="status" value="{{ current_status }}" placeholder="例如 SUCCESS" />
+    <button type="submit">过滤</button>
+</form>
+
+<h3>状态统计</h3>
+<ul>
+    {% for row in task_stats %}
+    <li>{{ row.status }}: {{ row.total }}</li>
+    {% empty %}
+    <li>暂无任务</li>
+    {% endfor %}
+</ul>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th><th>样本</th><th>状态</th><th>策略</th><th>人工复核</th><th>重试</th><th>创建时间</th><th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for task in tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task.sample.file_name }}</td>
+            <td>{{ task.status }}</td>
+            <td>{{ task.strategy }}</td>
+            <td>{{ task.requires_manual_review }}</td>
+            <td>{{ task.retry_count }}/{{ task.max_retries }}</td>
+            <td>{{ task.created_at }}</td>
+            <td><a href="/analysis/tasks/{{ task.id }}/">详情</a></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="8">暂无任务</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

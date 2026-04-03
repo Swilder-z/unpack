@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>上传 APK</h2>
+<p>仅支持 .apk 文件，系统会自动校验、提取信息并执行 APKiD 识壳。</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">上传并识别</button>
+</form>
+{% endblock %}

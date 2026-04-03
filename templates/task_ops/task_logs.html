@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>任务日志 #{{ job.id }}</h2>
+
+<form method="get" style="display:flex; gap:8px; margin-bottom:12px;">
+    <select name="level">
+        <option value="">全部级别</option>
+        {% for value in level_choices %}
+            <option value="{{ value }}" {% if value == level %}selected{% endif %}>{{ value }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="stage" value="{{ stage }}" placeholder="阶段(模糊)" />
+    <button type="submit">筛选</button>
+    <a href="{% url 'task_ops:task_logs' job.id %}">重置</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>时间</th>
+            <th>级别</th>
+            <th>阶段</th>
+            <th>消息</th>
+            <th>数据</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in page_obj.object_list %}
+            <tr>
+                <td>{{ log.created_at }}</td>
+                <td>{{ log.level }}</td>
+                <td>{{ log.stage }}</td>
+                <td>{{ log.message }}</td>
+                <td>
+                    {% if log.data %}
+                        <details>
+                            <summary>查看</summary>
+                            <pre>{{ log.data|safe }}</pre>
+                        </details>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">暂无日志</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 12px;">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&level={{ level }}&stage={{ stage }}">上一页</a>
+    {% endif %}
+    <span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&level={{ level }}&stage={{ stage }}">下一页</a>
+    {% endif %}
+</div>
+
+<div style="margin-top: 12px;">
+    <a href="{% url 'task_ops:task_detail' job.id %}">返回任务详情</a>
+</div>
+{% endblock %}

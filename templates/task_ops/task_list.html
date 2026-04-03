@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>任务运维视图</h2>
+
+<form method="get" style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+    <select name="status">
+        <option value="">全部状态</option>
+        {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ value }} / {{ label }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="shell_type" value="{{ filters.shell_type }}" placeholder="壳类别(模糊)" />
+
+    <select name="strategy">
+        <option value="">全部策略</option>
+        {% for value, label in strategy_choices %}
+            <option value="{{ value }}" {% if filters.strategy == value %}selected{% endif %}>{{ value }} / {{ label }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="user" value="{{ filters.user }}" placeholder="用户(上传人)" />
+    <button type="submit">筛选</button>
+    <a href="{% url 'task_ops:task_list' %}">重置</a>
+</form>
+
+<div style="display:flex; gap:24px; margin-bottom:12px;">
+    <div>
+        <h4>状态统计</h4>
+        <ul>
+            {% for row in status_stats %}
+                <li>{{ row.status }}: {{ row.total }}</li>
+            {% empty %}
+                <li>暂无数据</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <h4>壳类别 Top10</h4>
+        <ul>
+            {% for row in shell_stats %}
+                <li>{{ row.shell_detection__shell_type|default:'UNKNOWN' }}: {{ row.total }}</li>
+            {% empty %}
+                <li>暂无数据</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>样本</th>
+            <th>状态</th>
+            <th>壳类别</th>
+            <th>策略</th>
+            <th>执行节点</th>
+            <th>模拟器实例</th>
+            <th>重试</th>
+            <th>耗时</th>
+            <th>错误</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in page_obj.object_list %}
+            <tr>
+                <td>{{ job.id }}</td>
+                <td>{{ job.sample.file_name }}</td>
+                <td>{{ job.status }}</td>
+                <td>{{ job.shell_detection.shell_type|default:'-' }}</td>
+                <td>{{ job.strategy }}</td>
+                <td>{{ job.result_summary.execution_node|default:'default-node' }}</td>
+                <td>{{ job.result_summary.emulator_instance|default:'-' }}</td>
+                <td>{{ job.retry_count }}/{{ job.max_retries }}</td>
+                <td>
+                    {% if job.started_at and job.finished_at %}
+                        {{ job.finished_at|timesince:job.started_at }}
+                    {% elif job.started_at %}
+                        进行中
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ job.error_message|default:'-'|truncatechars:50 }}</td>
+                <td>
+                    <a href="{% url 'task_ops:task_detail' job.id %}">详情</a> |
+                    <a href="{% url 'task_ops:task_logs' job.id %}">日志</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="11">暂无任务</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 12px;">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&status={{ filters.status }}&shell_type={{ filters.shell_type }}&strategy={{ filters.strategy }}&user={{ filters.user }}">上一页</a>
+    {% endif %}
+    <span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&status={{ filters.status }}&shell_type={{ filters.shell_type }}&strategy={{ filters.strategy }}&user={{ filters.user }}">下一页</a>
+    {% endif %}
+</div>
+{% endblock %}
